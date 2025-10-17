@@ -21,11 +21,11 @@ interface KittyInterface{
 contract ZombieFeeding is ZombieFactory{
     KittyInterface kittyContract;
 
-    function setKittyContractAddress(address _address) external{
+    function setKittyContractAddress(address _address) external {
         kittyContract = KittyInterface(_address);
     }
 
-    modifier onlyOwner(uint _zombieId){
+    modifier onlyOwnerOf(uint _zombieId){
         if (msg.sender!=zombieToOwner[_zombieId]){
             revert("Thats not your Zombie");
         }
@@ -35,14 +35,14 @@ contract ZombieFeeding is ZombieFactory{
     function feedAndMultiply(uint _zombieId,uint _target,string memory _species)internal{
         Zombie storage myZombie=zombies[_zombieId];
         _target%=DNA_MODULUS;
-        uint256 newDna=(myZombie.dna+_target/2);
+        uint256 newDna=(myZombie.dna+_target)/2;
         if(keccak256(abi.encodePacked(_species))==keccak256(abi.encodePacked("kitty"))){
             newDna-=newDna%100+99;
         }
         _createZombie("no name", newDna);
         
     }
-    function feedOnKitty(uint _zombieId,uint _kittyId)public onlyOwner(_zombieId){
+    function feedOnKitty(uint _zombieId,uint _kittyId)public onlyOwnerOf(_zombieId){
         (,,,,,,,,,uint256 kittyDna)=kittyContract.getKitty(_kittyId);
         feedAndMultiply(_zombieId,kittyDna,"kitty");
     }
