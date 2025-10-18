@@ -21,10 +21,6 @@ interface KittyInterface{
 contract ZombieFeeding is ZombieFactory{
     KittyInterface kittyContract;
 
-    function setKittyContractAddress(address _address) external {
-        kittyContract = KittyInterface(_address);
-    }
-
     modifier onlyOwnerOf(uint _zombieId){
         if (msg.sender!=zombieToOwner[_zombieId]){
             revert("Thats not your Zombie");
@@ -32,7 +28,19 @@ contract ZombieFeeding is ZombieFactory{
         _;
     }
 
-    function feedAndMultiply(uint _zombieId,uint _target,string memory _species)internal{
+    modifier ready(uint _zombieId){
+        if(zombies[_zombieId].readyTime>=block.timestamp){
+            revert("Zombie not ready to take action yet");
+        }
+        _;
+    }
+
+    function setKittyContractAddress(address _address) external {
+        kittyContract = KittyInterface(_address);
+    }
+
+
+    function feedAndMultiply(uint _zombieId,uint _target,string memory _species)internal {
         Zombie storage myZombie=zombies[_zombieId];
         _target%=DNA_MODULUS;
         uint256 newDna=(myZombie.dna+_target)/2;
@@ -42,7 +50,7 @@ contract ZombieFeeding is ZombieFactory{
         _createZombie("no name", newDna);
         
     }
-    function feedOnKitty(uint _zombieId,uint _kittyId)public onlyOwnerOf(_zombieId){
+    function feedOnKitty(uint _zombieId,uint _kittyId)public onlyOwnerOf(_zombieId) ready(_zombieId){
         (,,,,,,,,,uint256 kittyDna)=kittyContract.getKitty(_kittyId);
         feedAndMultiply(_zombieId,kittyDna,"kitty");
     }

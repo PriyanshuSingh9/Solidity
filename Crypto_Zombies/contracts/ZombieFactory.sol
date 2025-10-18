@@ -11,6 +11,9 @@ contract ZombieFactory{
         string name;
         uint256 dna;
         uint16 level;
+        uint256 readyTime;
+        uint16 winCount;
+        uint16 lossCount;
     }
     Zombie[] public zombies;
 
@@ -35,7 +38,7 @@ contract ZombieFactory{
     }
 
     function _createZombie(string memory _name,uint256 _dna)internal{
-        zombies.push(Zombie(_name,_dna,1));
+        zombies.push(Zombie(_name,_dna,1,block.timestamp,0,0));
         uint256 newZombieId=zombies.length-1;
         allZombies[msg.sender].push(newZombieId);
         ownerZombieCount[msg.sender]++;
