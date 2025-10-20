@@ -7,6 +7,8 @@ contract ZombieFactory{
     uint256 constant DNA_MODULUS=10**16;
     address immutable i_owner;
 
+    event birth(uint256 id,string name,uint256 dna);
+
     struct Zombie{
         string name;
         uint256 dna;
@@ -14,6 +16,7 @@ contract ZombieFactory{
         uint256 readyTime;
         uint16 winCount;
         uint16 lossCount;
+        uint256 auctionPrice;
     }
     Zombie[] public zombies;
 
@@ -38,11 +41,12 @@ contract ZombieFactory{
     }
 
     function _createZombie(string memory _name,uint256 _dna)internal{
-        zombies.push(Zombie(_name,_dna,1,block.timestamp,0,0));
+        zombies.push(Zombie(_name,_dna,1,block.timestamp,0,0,0));
         uint256 newZombieId=zombies.length-1;
         allZombies[msg.sender].push(newZombieId);
         ownerZombieCount[msg.sender]++;
         zombieToOwner[newZombieId]=msg.sender;
+        emit birth(newZombieId, zombies[newZombieId].name, zombies[newZombieId].dna);
     }
 
     function createFirstZombie(string memory _name)public firstZombie{

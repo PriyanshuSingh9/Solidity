@@ -29,7 +29,7 @@ contract ZombieFeeding is ZombieFactory{
     }
 
     modifier ready(uint _zombieId){
-        if(zombies[_zombieId].readyTime>=block.timestamp){
+        if(zombies[_zombieId].readyTime>block.timestamp){
             revert("Zombie not ready to take action yet");
         }
         _;
@@ -45,7 +45,7 @@ contract ZombieFeeding is ZombieFactory{
         _target%=DNA_MODULUS;
         uint256 newDna=(myZombie.dna+_target)/2;
         if(keccak256(abi.encodePacked(_species))==keccak256(abi.encodePacked("kitty"))){
-            newDna-=newDna%100+99;
+            newDna-=(newDna%100)+99;
         }
         _createZombie("no name", newDna);
         

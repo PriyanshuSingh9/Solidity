@@ -23,7 +23,7 @@ contract ZombieHelper is ZombieFeeding{
 
 
     function levelUp(uint _zombieId) external payable onlyOwnerOf(_zombieId){
-        if (msg.value<=LEVEL_UP_FEE){
+        if (msg.value<LEVEL_UP_FEE){
             revert("You need to pay 100 gwei to level up your zombie");
         }
         Zombie storage myZombie= zombies[_zombieId];
