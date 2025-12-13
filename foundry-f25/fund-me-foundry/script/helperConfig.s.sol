@@ -23,6 +23,10 @@ contract HelperConfig is Script {
 
     NetworkConfig public activeNetworkConfig;
 
+    // magic numbers
+    uint8 public constant DECIMALS = 8;
+    int256 public constant INITIAL_PRICE = 2000e8;
+
     constructor() {
         // checking which chain we are on
         if (block.chainid == 11155111) {
@@ -41,9 +45,17 @@ contract HelperConfig is Script {
     }
 
     function getAnvilEthConfig() public returns (NetworkConfig memory) {
+        // check if we have already setup a mock price feed and use it
+        if (activeNetworkConfig.priceFeed != address(0)) {
+            return activeNetworkConfig;
+        }
+
         // 1. deploy the mocks
         vm.startBroadcast();
-        MockV3Aggregator mockPriceFeed = new MockV3Aggregator(8, 2000e8);
+        MockV3Aggregator mockPriceFeed = new MockV3Aggregator(
+            DECIMALS,
+            INITIAL_PRICE
+        );
         // 8 bcs we know that our price feeed uses 8 decimals and a starting price of 2000
         vm.stopBroadcast();
 

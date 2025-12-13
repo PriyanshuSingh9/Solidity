@@ -34,7 +34,7 @@ contract FundMeTest is Test {
 
     // Chainlink has updated the version of their pricefeed on mainnet.
     // Tests forking mainnet, as shown in the video, may fail.
-    function testPriceFeedVersionIsAccurate() public {
+    function testPriceFeedVersionIsAccurate() public view {
         if (block.chainid == 11155111) {
             uint256 version = fundMe.getVersion();
             assertEq(version, 4);
