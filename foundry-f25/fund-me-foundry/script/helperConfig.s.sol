@@ -9,6 +9,7 @@
 pragma solidity ^0.8.24;
 
 import {Script} from "forge-std/Script.sol";
+import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
     // If we are on test anvil, we deploy mocks
@@ -39,5 +40,17 @@ contract HelperConfig is Script {
         return sepoliaConfig;
     }
 
-    function getAnvilEthConfig() public pure returns (NetworkConfig memory) {}
+    function getAnvilEthConfig() public returns (NetworkConfig memory) {
+        // 1. deploy the mocks
+        vm.startBroadcast();
+        MockV3Aggregator mockPriceFeed = new MockV3Aggregator(8, 2000e8);
+        // 8 bcs we know that our price feeed uses 8 decimals and a starting price of 2000
+        vm.stopBroadcast();
+
+        // 2. return the mock addresses
+        NetworkConfig memory anvilconfig = NetworkConfig({
+            priceFeed: address(mockPriceFeed)
+        });
+        return anvilconfig;
+    }
 }
