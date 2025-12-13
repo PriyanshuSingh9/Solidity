@@ -14,9 +14,12 @@ contract FundMe {
     address[] public funders;
     mapping(address funder => uint256 amountFunded) fundsByUser;
     address public immutable i_owner;
+    // price feed interface
+    AggregatorV3Interface private s_priceFeed;
 
-    constructor() {
+    constructor(address priceFeed) {
         i_owner = msg.sender;
+        s_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
     modifier onlyi_Owner() {
@@ -28,11 +31,11 @@ contract FundMe {
 
     function fund() public payable {
         require(
-            msg.value.convertionRate() >= MINIMUM_USD,
+            msg.value.convertionRate(s_priceFeed) >= MINIMUM_USD,
             "Didn't send enough ETH"
         );
         funders.push(msg.sender);
-        fundsByUser[msg.sender] += msg.value.convertionRate();
+        fundsByUser[msg.sender] += msg.value.convertionRate(s_priceFeed);
     }
 
     function getBalance() public view returns (uint) {
@@ -52,10 +55,7 @@ contract FundMe {
     }
 
     function getVersion() public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(
-            0x694AA1769357215DE4FAC081bf1f309aDC325306
-        );
-        return priceFeed.version();
+        return s_priceFeed.version();
     }
 
     receive() external payable {

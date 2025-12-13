@@ -7,13 +7,20 @@ pragma solidity ^0.8.24;
 import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../src/FundMe.sol";
 
+// adding this so that we don't have separate deploy scripts for testing and deploying
+import {DeployFundMe} from "../script/DeployFundMe.s.sol";
+
 contract FundMeTest is Test {
     FundMe fundMe;
 
     // this function is always executed before any tests are performed
     function setUp() external {
-        fundMe = new FundMe();
+        // fundMe = new FundMe(0x694AA1769357215DE4FAC081bf1f309aDC325306);
         // owner of fundMe is test and not us
+
+        // using this script the contract deployer is us and not test thus we use msg.sender below
+        DeployFundMe deployFundMe = new DeployFundMe();
+        fundMe = deployFundMe.run();
     }
 
     function testMinimumUsdIsFive() public view {
@@ -21,13 +28,15 @@ contract FundMeTest is Test {
     }
 
     function testOwnerIsMsgSender() public view {
-        assertEq(fundMe.i_owner(), address(this));
-        // msg.sender does not work because here the msg sender will be us while the contract is deplyed
-        // by the test contract thus we use address(this) to get the address sof our test contract
+        console.log(msg.sender);
+        assertEq(fundMe.i_owner(), msg.sender);
     }
 
     function testPriceFeedVersionIsAccurate() public view {
         uint256 version = fundMe.getVersion();
         assertEq(version, 4);
     }
+    // this test will always revert and produce an error if we use the anvil chain
+    // to deploy it as there exists no such aggregator contract on it thus we have
+    // to create a .env file and use our sepolia endpoint as fork url
 }
