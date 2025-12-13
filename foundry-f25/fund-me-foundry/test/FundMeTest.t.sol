@@ -32,9 +32,16 @@ contract FundMeTest is Test {
         assertEq(fundMe.i_owner(), msg.sender);
     }
 
-    function testPriceFeedVersionIsAccurate() public view {
-        uint256 version = fundMe.getVersion();
-        assertEq(version, 4);
+    // Chainlink has updated the version of their pricefeed on mainnet.
+    // Tests forking mainnet, as shown in the video, may fail.
+    function testPriceFeedVersionIsAccurate() public {
+        if (block.chainid == 11155111) {
+            uint256 version = fundMe.getVersion();
+            assertEq(version, 4);
+        } else if (block.chainid == 1) {
+            uint256 version = fundMe.getVersion();
+            assertEq(version, 6);
+        }
     }
     // this test will always revert and produce an error if we use the anvil chain
     // to deploy it as there exists no such aggregator contract on it thus we have
