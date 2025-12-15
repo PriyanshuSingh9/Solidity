@@ -11,9 +11,9 @@ contract FundMe {
     using PriceConverter for uint256;
 
     uint public constant MINIMUM_USD = 5e18;
+    address public immutable i_owner;
     address[] public s_funders;
     mapping(address funder => uint256 amountFunded) private s_fundsByUser;
-    address public immutable i_owner;
     // price feed interface
     AggregatorV3Interface private s_priceFeed;
 
@@ -35,7 +35,7 @@ contract FundMe {
             "Didn't send enough ETH"
         );
         s_funders.push(msg.sender);
-        s_fundsByUser[msg.sender] += msg.value.convertionRate(s_priceFeed);
+        s_fundsByUser[msg.sender] += msg.value;
     }
 
     function getBalance() public view returns (uint) {

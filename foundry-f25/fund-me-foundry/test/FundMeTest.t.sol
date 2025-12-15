@@ -13,6 +13,11 @@ import {DeployFundMe} from "../script/DeployFundMe.s.sol";
 contract FundMeTest is Test {
     FundMe fundMe;
 
+    address USER = makeAddr("user");
+    // it is a forge std cheat returns an address to use
+    uint256 constant SEND_VALUE = 1 ether;
+    uint256 constant STARTING_BALANCE = 10 ether;
+
     // this function is always executed before any tests are performed
     function setUp() external {
         // fundMe = new FundMe(0x694AA1769357215DE4FAC081bf1f309aDC325306);
@@ -21,6 +26,8 @@ contract FundMeTest is Test {
         // using this script the contract deployer is us and not test thus we use msg.sender below
         DeployFundMe deployFundMe = new DeployFundMe();
         fundMe = deployFundMe.run();
+        vm.deal(USER, STARTING_BALANCE);
+        // cheatcode to send some funds to an address to make tx in the future
     }
 
     function testMinimumUsdIsFive() public view {
@@ -59,7 +66,11 @@ contract FundMeTest is Test {
 
     function testFundUpdatesDone() public {
         // testing function fund() in FundMe.sol
-        fundMe.fund{value: 10e18}();
-        uint256 amountFunded=fundMe.s_fundsByUser()
+        vm.prank(USER);
+        // prank is also a cheatcode in foundry which means that the next tx will be sent from the
+        // address USER
+        fundMe.fund{value: SEND_VALUE}();
+        uint256 amountFunded = fundMe.getAddressToAmountFunded(USER);
+        assertEq(amountFunded, SEND_VALUE);
     }
 }
