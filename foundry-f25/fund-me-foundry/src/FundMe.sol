@@ -11,7 +11,7 @@ contract FundMe {
     using PriceConverter for uint256;
 
     uint public constant MINIMUM_USD = 5e18;
-    address public immutable i_owner;
+    address private immutable i_owner;
     address[] public s_funders;
     mapping(address funder => uint256 amountFunded) private s_fundsByUser;
     // price feed interface

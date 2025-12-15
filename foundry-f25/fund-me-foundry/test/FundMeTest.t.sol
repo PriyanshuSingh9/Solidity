@@ -18,6 +18,13 @@ contract FundMeTest is Test {
     uint256 constant SEND_VALUE = 1 ether;
     uint256 constant STARTING_BALANCE = 10 ether;
 
+    modifier funded() {
+        // helps in setting up tests by giving some value to fundMe contract
+        vm.prank(USER);
+        fundMe.fund{value: SEND_VALUE}();
+        _;
+    }
+
     // this function is always executed before any tests are performed
     function setUp() external {
         // fundMe = new FundMe(0x694AA1769357215DE4FAC081bf1f309aDC325306);
@@ -36,7 +43,7 @@ contract FundMeTest is Test {
 
     function testOwnerIsMsgSender() public view {
         console.log(msg.sender);
-        assertEq(fundMe.i_owner(), msg.sender);
+        assertEq(fundMe.getOwner(), msg.sender);
     }
 
     // Chainlink has updated the version of their pricefeed on mainnet.
@@ -65,12 +72,51 @@ contract FundMeTest is Test {
     }
 
     function testFundUpdatesDone() public {
-        // testing function fund() in FundMe.sol
+        // testing function fund() in FundMe.sol--> funds are mapped to user or not
         vm.prank(USER);
         // prank is also a cheatcode in foundry which means that the next tx will be sent from the
         // address USER
         fundMe.fund{value: SEND_VALUE}();
         uint256 amountFunded = fundMe.getAddressToAmountFunded(USER);
         assertEq(amountFunded, SEND_VALUE);
+    }
+
+    function testAddsFunderToArray() public funded {
+        // testing function fund() in FundMe.sol--> funders are saved or not
+
+        address funder = fundMe.getFunder(0);
+        assertEq(funder, USER);
+    }
+
+    function testOnlyOwnerCanWithdraw() public funded {
+        // testing function withdraw() in FundMe.sol--> onlyb owner of contract should be able to withdraw
+
+        vm.expectRevert();
+        vm.prank(USER);
+        // works for only this : vvvvvvvvvvv
+        fundMe.withdraw();
+    }
+
+    function testWithdrawWithASingleFunder() public funded {
+        // using this methodology we structure our tests i.e. initialise test conditions perform
+        // a function and then check for the required result.
+
+        // Arrange
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = fundMe.getBalance();
+
+        // Act
+        vm.prank(msg.sender);
+        fundMe.withdraw();
+
+        // Assert
+        uint256 endingOwnerBalance = fundMe.getOwner().balance;
+        uint256 endingFundMeBalance = fundMe.getBalance();
+
+        assertEq(endingFundMeBalance, 0);
+        assertEq(
+            startingOwnerBalance + startingFundMeBalance,
+            endingOwnerBalance
+        );
     }
 }
