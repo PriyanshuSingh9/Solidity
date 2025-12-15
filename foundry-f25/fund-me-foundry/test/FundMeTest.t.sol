@@ -106,10 +106,40 @@ contract FundMeTest is Test {
         uint256 startingFundMeBalance = fundMe.getBalance();
 
         // Act
-        vm.prank(msg.sender);
+        vm.prank(fundMe.getOwner());
         fundMe.withdraw();
 
         // Assert
+        uint256 endingOwnerBalance = fundMe.getOwner().balance;
+        uint256 endingFundMeBalance = fundMe.getBalance();
+
+        assertEq(endingFundMeBalance, 0);
+        assertEq(
+            startingOwnerBalance + startingFundMeBalance,
+            endingOwnerBalance
+        );
+    }
+
+    function testWithdrawWithMultipleFunders() public funded {
+        // we use uint160 to generate addresses bcs address also consist of 160 bits
+        uint160 numberOfFunders = 10;
+        uint160 startingFunderIndex = 1;
+        // using 1 as starting index as sometimes address(0) reverts.
+
+        for (uint160 i = startingFunderIndex; i < numberOfFunders; i++) {
+            // hoax is another std library cheat that combines deal and prank
+            hoax(address(i), SEND_VALUE);
+            fundMe.fund{value: SEND_VALUE}();
+        }
+
+        uint256 startingOwnerBalance = fundMe.getOwner().balance;
+        uint256 startingFundMeBalance = fundMe.getBalance();
+
+        // this block behaves the same as startBroadcast() and stopBroadcast()
+        vm.startPrank(fundMe.getOwner());
+        fundMe.withdraw();
+        vm.stopPrank();
+
         uint256 endingOwnerBalance = fundMe.getOwner().balance;
         uint256 endingFundMeBalance = fundMe.getBalance();
 
