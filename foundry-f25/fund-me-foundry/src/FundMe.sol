@@ -11,8 +11,8 @@ contract FundMe {
     using PriceConverter for uint256;
 
     uint public constant MINIMUM_USD = 5e18;
-    address[] public funders;
-    mapping(address funder => uint256 amountFunded) fundsByUser;
+    address[] public s_funders;
+    mapping(address funder => uint256 amountFunded) private s_fundsByUser;
     address public immutable i_owner;
     // price feed interface
     AggregatorV3Interface private s_priceFeed;
@@ -34,8 +34,8 @@ contract FundMe {
             msg.value.convertionRate(s_priceFeed) >= MINIMUM_USD,
             "Didn't send enough ETH"
         );
-        funders.push(msg.sender);
-        fundsByUser[msg.sender] += msg.value.convertionRate(s_priceFeed);
+        s_funders.push(msg.sender);
+        s_fundsByUser[msg.sender] += msg.value.convertionRate(s_priceFeed);
     }
 
     function getBalance() public view returns (uint) {
@@ -43,19 +43,15 @@ contract FundMe {
     }
 
     function withdraw() public onlyi_Owner {
-        for (uint i = 0; i < funders.length; i++) {
-            fundsByUser[funders[i]] = 0;
+        for (uint i = 0; i < s_funders.length; i++) {
+            s_fundsByUser[s_funders[i]] = 0;
         }
-        funders = new address[](0);
+        s_funders = new address[](0);
 
         (bool callSuccess, ) = payable(msg.sender).call{
             value: address(this).balance
         }("");
         require(callSuccess, "Call Failed");
-    }
-
-    function getVersion() public view returns (uint256) {
-        return s_priceFeed.version();
     }
 
     receive() external payable {
@@ -64,5 +60,28 @@ contract FundMe {
 
     fallback() external payable {
         fund();
+    }
+
+    // view/pure functions i.e. getters
+    function getAddressToAmountFunded(
+        address fundingAddress
+    ) public view returns (uint256) {
+        return s_fundsByUser[fundingAddress];
+    }
+
+    function getVersion() public view returns (uint256) {
+        return s_priceFeed.version();
+    }
+
+    function getFunder(uint256 index) public view returns (address) {
+        return s_funders[index];
+    }
+
+    function getOwner() public view returns (address) {
+        return i_owner;
+    }
+
+    function getPriceFeed() public view returns (AggregatorV3Interface) {
+        return s_priceFeed;
     }
 }

@@ -43,7 +43,23 @@ contract FundMeTest is Test {
             assertEq(version, 6);
         }
     }
+
     // this test will always revert and produce an error if we use the anvil chain
     // to deploy it as there exists no such aggregator contract on it thus we have
     // to create a .env file and use our sepolia endpoint as fork url
+
+    function testEnoughEthNotSent() public {
+        // testing function fund() in FundMe.sol
+
+        // this cheatcode means that we expect the following section to revert
+        // if it doesn't the test will fail i.e. assert(this tx will fail/revert)
+        vm.expectRevert();
+        fundMe.fund(); // sending no value to fxn fund
+    }
+
+    function testFundUpdatesDone() public {
+        // testing function fund() in FundMe.sol
+        fundMe.fund{value: 10e18}();
+        uint256 amountFunded=fundMe.s_fundsByUser()
+    }
 }

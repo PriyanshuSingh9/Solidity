@@ -85,6 +85,7 @@ contract MockV3Aggregator is AggregatorV3Interface {
         )
     {
         return (
+            // forge-lint: disable-next-line(unsafe-typecast)
             uint80(latestRound),
             getAnswer[latestRound],
             getStartedAt[latestRound],
