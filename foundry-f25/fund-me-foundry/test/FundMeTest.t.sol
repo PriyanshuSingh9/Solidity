@@ -17,6 +17,7 @@ contract FundMeTest is Test {
     // it is a forge std cheat returns an address to use
     uint256 constant SEND_VALUE = 1 ether;
     uint256 constant STARTING_BALANCE = 10 ether;
+    uint256 constant GAS_PRICE = 1;
 
     modifier funded() {
         // helps in setting up tests by giving some value to fundMe contract
@@ -106,8 +107,20 @@ contract FundMeTest is Test {
         uint256 startingFundMeBalance = fundMe.getBalance();
 
         // Act
+        // gasleft is a built-in fxn in solidity tells us how much gas is left in a tx.
+        uint256 gasStart = gasleft();
+
+        // setting a gas price for all subsequent transactions after this fxn call.
+        vm.txGasPrice(GAS_PRICE);
+        // in an anvil cahin the default gas price is taken as zero this is why
+        // withdrawing all the funds would give exact amount of funds that were sent
+        // even though gas would have been used in both depositing and withdrawing.
         vm.prank(fundMe.getOwner());
         fundMe.withdraw();
+
+        uint256 gasEnd = gasleft();
+        uint256 gasUsed = (gasStart - gasEnd) * tx.gasprice;
+        console.log("Gas used :", gasUsed);
 
         // Assert
         uint256 endingOwnerBalance = fundMe.getOwner().balance;
